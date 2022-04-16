@@ -4,7 +4,7 @@ import os
 from random import randint 
 from settings import Settings, Background
 from timer import Timer
-#from animation import Animation
+from animation import Animation
 
 #Ich besitze keinerlei Rechte an den, in diesem Programm, verwendeten Bildern.
 #Mit den diesem Programm wird kein kommerzieller Gewinn erzielt.
@@ -13,39 +13,6 @@ from timer import Timer
 #'dragonfly.png' stammt von https://miausmiles.com/2011/incredible-random-stuff/draw-something-every-day-035 (www.miausmiles.com)
 #'drop.png' stammt von http://www.clipartpanda.com/clipart_images/domain-raindrop-clip-art-19285059 (www.clipartpanda.com)
 #Ich bedanke mich bei den Contan Creatorn für ihre gute Arbeit
-
-class Animation(object):
-    def __init__(self, namelist, endless, animationtime, colorkey=None):
-        self.images = []
-        self.endless = endless
-        self.timer = Timer(animationtime)
-        for filename in namelist:
-            if colorkey == None:
-                bitmap = pygame.image.load(Settings.imagepath(filename)).convert_alpha()
-            else:
-                bitmap = pygame.image.load(Settings.imagepath(filename)).convert()
-                bitmap.set_colorkey(colorkey)
-            self.images.append(bitmap)
-        self.imageindex = -1
-
-    def next(self):
-        if self.timer.is_next_stop_reached():
-            self.imageindex += 1 
-            if self.imageindex >= len(self.images):
-                #game.FLY = False
-                if self.endless:
-                    self.imageindex = len(self.images) - 1
-                else:
-                    self.imageindex = 0 
-        return self.images[self.imageindex]
-
-    def is_ended(self):
-        if self.endless:
-            return False
-        elif self.imageindex >= len(self.images) - 1:
-            return True
-        else:
-            return False
 
 class Dragonfly(pygame.sprite.Sprite):
     def __init__(self, filename) -> None:
@@ -57,12 +24,10 @@ class Dragonfly(pygame.sprite.Sprite):
         self.rect.centerx = Settings.dragonfly_size[0] + 10
         self.rect.bottom = Settings.window_height // 2
         self.speed = 5
-        self.fly = Animation([f"zubat{i}.png" for i in range(0, 8)], False, 100)
+        self.fly = Animation([f"zubat{i}.png" for i in range(0, 8)], False, 50)  #animations Objekt
 
     def update(self):
-        #if game.FLY == False:
-            #self.image = pygame.image.load(Settings.imagepath(f"zubat0.png")).convert_alpha()
-        c = self.rect.bottom
+        c = self.rect.bottom                                  #position wieder auf die alte festlegen 
         x = self.rect.centerx
         self.rect = self.image.get_rect()
         self.rect.bottom = c
@@ -73,8 +38,8 @@ class Dragonfly(pygame.sprite.Sprite):
         press = pygame.key.get_pressed()                       #registiert Tastendruck
         if press[pygame.K_UP]:
             self.rect.top -= self.speed
-            self.image = self.fly.next()
-            self.update()
+            self.image = self.fly.next()                       #animation
+            self.update()                                      #update aufrufen
         if press[pygame.K_DOWN]:
             self.rect.top += self.speed
             self.image = self.fly.next()
@@ -84,6 +49,26 @@ class Dragonfly(pygame.sprite.Sprite):
             self.rect.top += 5
         if self.rect.bottom >= Settings.window_height -5:
             self.rect.top -= 5  
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self, filename) -> None:
+        super().__init__()
+        self.drop_size = (90, 180)
+        self.image = pygame.image.load(os.path.join(Settings.path_image, filename)).convert_alpha()
+        self.image = pygame.transform.scale(self.image, self.drop_size)
+        self.rect = self.image.get_rect()
+        self.rect.left = Settings.window_width
+        self.rect.top = Settings.window_height - self.drop_size[1]
+        self.speed_h = -5
+    
+    def update(self):
+        self.rect.move_ip((self.speed_h, 0)) 
+        if self.rect.right <= 0:
+            self.kill()                                          #löschen der Sprites wenn sie Unten ankommen
+            game.rocks_dodged += 1                               #erhöhen der ausgewichenen Hindernisse
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -98,17 +83,23 @@ class Game(object):
         self.clock = pygame.time.Clock()
         self.background = Background("Cave_Stage_Background.png")
         self.dragonfly_group = pygame.sprite.Group()
+        self.rock_group = pygame.sprite.Group()
         self.running = True
         self.counter = 0
         self.dragonflys = 0
         self.lives = 3
-        #self.FLY = False
+        self.rocks_dodged = 0
+        self.dragonfly = Dragonfly('zubat0.png')
+        self.dragonfly_group.add(self.dragonfly)
+        self.rock = Obstacle("rock2 - Kopie2.png")
+        self.rock_group.add(self.rock)
 
     def run(self):
         while self.running:
             self.clock.tick(60)
             self.watch_for_events()
             self.player()
+            self.elements()
             self.draw()
         pygame.quit()
         pygame.font.quit()      
@@ -122,17 +113,15 @@ class Game(object):
                 self.running = False
 
     def player(self):
-        if self.dragonflys == 0 and self.lives > 0:           #falls der Spieler kollidiert und er noch Leben übrig hat
-            self.dragonfly = Dragonfly('zubat0.png')
-            self.dragonfly_group.add(self.dragonfly)          #wird ein neuer Spieler erstellt
-            self.dragonflys = 1                               #self.dragonflys ist 1 wenn der Spieler noch nicht collidiert ist
-        else:
-            pass
-        self.dragonfly.watch_for_move()
+        self.dragonfly.watch_for_move()      
+
+    def elements(self):
+        self.rock_group.update()
         
     def draw(self):
         self.background.draw(self.screen)
         self.dragonfly_group.draw(self.screen)
+        self.rock_group.draw(self.screen)
         #falls alle Leben verbraucht sind wird der End Screen gezeigt
         pygame.display.flip()
 

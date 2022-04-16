@@ -23,7 +23,6 @@ class Animation(object):
         if self.timer.is_next_stop_reached():
             self.imageindex += 1 
             if self.imageindex >= len(self.images):
-                game.FLY = False
                 if self.endless:
                     self.imageindex = len(self.images) - 1
                 else:
