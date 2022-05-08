@@ -1,10 +1,10 @@
-from typing import Set
+#from typing import Set
 import pygame
-import os
-from random import randint 
+#import os
+#from random import randint 
 
 class Timer(object):
-    def __init__(self, duration, with_start = True):
+    def __init__(self, duration, with_start = False):
         self.duration = duration
         if with_start:
             self.next = pygame.time.get_ticks()
@@ -17,7 +17,7 @@ class Timer(object):
             return True
         return False
 
-    def change_duration(self, delta=10):
+    def change_duration(self, delta):
         self.duration += delta
         if self.duration < 0:
             self.duration = 0

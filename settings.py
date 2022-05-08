@@ -2,15 +2,17 @@ from typing import Set
 import pygame
 import os
 from random import randint 
-from timer import Timer 
+#from timer import Timer 
 
 class Settings(object):
     window_height = 500
     window_width = 900
     path_file = os.path.dirname(os.path.abspath(__file__))
     path_image = os.path.join(path_file, "images1")
-    dragonfly_size = (50, 60) 
+    zubat_size = (50, 50) 
     title = "Zubat in a Cave"
+    max_ostacles = 4
+    max_power = 3
     
     @staticmethod
     def imagepath(name):
