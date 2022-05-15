@@ -6,7 +6,9 @@ from settings import Settings, Background
 from timer import Timer
 from animation import Animation
 from spawn_check import spawn_check
+from powerups import sonic_power
 from login import *
+from data_save import save_state, rank
 
 #Ich besitze keinerlei Rechte an den, in diesem Programm, verwendeten Bildern.
 #Mit den diesem Programm wird kein kommerzieller Gewinn erzielt.
@@ -49,20 +51,24 @@ class Zubat(pygame.sprite.Sprite):
             self.rect.top += self.speed
             self.animate()
         #Wandkollision
-        if self.rect.top <= 5:
-            self.rect.top += 5
-        if self.rect.bottom >= Settings.window_height -5:
-            self.rect.top -= 5  
+        if self.rect.top <= self.speed:
+            self.rect.top += self.speed
+        if self.rect.bottom >= Settings.window_height - self.speed:
+            self.rect.top -= self.speed  
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, filename, position) -> None:
+    def __init__(self, position) -> None:
         super().__init__()
         self.position = position
+        if self.position == 1:
+            self.filename = "rock1_unten.png"
+        elif self.position == 2:
+            self.filename = "rock1_oben.png"
         self.rock_size = (90, randint(90, Settings.window_height - (80 + Settings.zubat_size[1])))
-        self.image = pygame.image.load(os.path.join(Settings.path_image, filename)).convert_alpha()
+        self.image = pygame.image.load(os.path.join(Settings.path_image, self.filename)).convert_alpha()
         self.image = pygame.transform.scale(self.image, self.rock_size)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
@@ -82,9 +88,10 @@ class Obstacle(pygame.sprite.Sprite):
             else:
                 game.rocks_dodged += 1
 
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-
+        
 class Event(pygame.sprite.Sprite):
     def __init__(self, filename, speed) -> None:
         super().__init__()
@@ -126,10 +133,14 @@ class Game(object):
         self.powerup_1_mark = randint(30, 50)
         self.powerup_2_mark = randint(30, 50)
         self.ball_mark = 30
+        self.up1_timer = Timer(20000)
+        self.up2_timer = Timer(20000)
         self.cooldown_timer = Timer(3000)
         self.cooldown = False
         self.mega_up = False
-        self.fp = 2000
+        self.sound_up = False
+        self.game_end = False
+        self.fp = 1000
         self.rocks_dodged = 0
         self.powerup_1_count = 0
         self.powerup_2_count = 0
@@ -138,7 +149,7 @@ class Game(object):
         while self.running:
             self.clock.tick(60)
             self.watch_for_events()
-            self.event_spawn()
+            self.event()
             self.rock_spawn()
             self.update()
             self.collision()
@@ -151,11 +162,16 @@ class Game(object):
             if event.type == pygame.KEYDOWN:        
                 if event.key == pygame.K_ESCAPE:   
                     self.running = False
-                if event.key == pygame.K_m:
-                    print("Mega Up")
-                    self.mega_up = True
+                if event.key == pygame.K_m:  # activieren des ersten Powerups
+                    if self.powerup_1_count > 0:
+                        self.mega_up = True
+                        self.up1_timer = Timer(20000)
+                        print("Mega Up")
                 if event.key == pygame.K_s:
-                    print("Sonic Up")
+                    if self.powerup_2_count > 0:
+                        self.sound_up = True
+                        self.up2_timer = Timer(20000)
+                        print("Sonic Up")
             if event.type == pygame.KEYUP:        
                 if event.key == pygame.K_UP or event.key == pygame.K_DOWN:   # wenn die tasten losgelassen werden, werden einem Punkte abgezogen 
                     if self.fp != 0:
@@ -172,7 +188,7 @@ class Game(object):
             self.rock_group.update()
 
             if self.fp <= 0:
-                        self.zubat_group.empty()              #spieler wird entfernt 
+                self.zubat_group.empty()              #spieler wird entfernt 
     
     def collision(self):
         if self.cooldown_timer.is_next_stop_reached():
@@ -189,27 +205,32 @@ class Game(object):
                     if self.fp <= 0:
                         self.fp = 0
                     print("hit")
+                    print(self.fp)
             
+            if pygame.sprite.groupcollide(self.zubat_group, self.ball_group, False, True):
+                self.fp = 1000
+                print(self.fp)
+
             if pygame.sprite.groupcollide(self.zubat_group, self.powerup_1_group, False, True):
-                if self.powerup_1_count <= Settings.max_power:
+                if self.powerup_1_count < Settings.max_power:
                     self.powerup_1_count += 1
             
             if pygame.sprite.groupcollide(self.zubat_group, self.powerup_2_group, False, True):
-                if self.powerup_2_count <= Settings.max_power:
+                if self.powerup_2_count < Settings.max_power:
                     self.powerup_2_count += 1
     
     def rock_spawn(self):
         if len(self.ball_group) == 0:
             if self.rock_timer.is_next_stop_reached():
                 for r in range (0, randint(1, Settings.max_ostacles)):  #Anzahl der Gleichzeitigen Hindernisse in Settings mimimal 1
-                    self.rock = Obstacle("rock2 - Kopie2.png", randint(1,2))
+                    self.rock = Obstacle(randint(1,2))
                     self.rock_group.add(self.rock)
                     spawn_check(self.rock_group, 90)
     
-    def event_spawn(self):                                   #powerups und pokebälle spawnen
+    def event(self):                                   #powerups und pokebälle spawnen
         if self.ball_mark == self.rocks_dodged: #pokebälle
             #self.rock_group.empty()
-            self.ball = Event("rock2.png", -2)
+            self.ball = Event("rock2_unten.png", -2)
             self.ball_group.add(self.ball)
             self.ball_mark += 20 #zeitabstand verlängern, um schwierigkeit zu steigern
 
@@ -222,6 +243,16 @@ class Game(object):
             self.up1 = Event("dragonfly.png", -5)
             self.powerup_2_group.add(self.up1)
             self.powerup_2_mark += 20
+        
+        if self.mega_up:
+            if self.up1_timer.is_next_stop_reached():
+                self.mega_up = False
+        
+        if self.sound_up:
+            sonic_power(self.rock_group, self.sound_up)
+            if self.up2_timer.is_next_stop_reached():
+                self.sound_up = False
+                sonic_power(self.rock_group, self.sound_up)
 
     def draw(self):
         #print(pygame.time.get_ticks())
@@ -230,13 +261,18 @@ class Game(object):
         self.rock_group.draw(self.screen)
         self.ball_group.draw(self.screen)
         self.powerup_1_group.draw(self.screen)
+        self.powerup_2_group.draw(self.screen)
         if self.fp <= 0: # ausgae am ende mit bestspieler liste
+            top_three = rank()
+            if not self.game_end:
+                save_state(app.name, self.rocks_dodged)
+                self.game_end = True
             self.end_screen = self.font_message.render(f"You lost! Your Score is {self.rocks_dodged}", True, [0, 0, 0])
-            self.best_screen = self.font_message.render(f"The best player was {self.fp}", True, [0, 0, 0])
-            self.retry_screen = self.font_message.render("Press [x] if you want to try again", True, [0, 0, 0])
+            self.best_screen = self.font_message.render(f"The best player was '{top_three[0][1]}', with {top_three[0][0]} Points", True, [0, 0, 0])
+            #self.retry_screen = self.font_message.render("Press [x] if you want to try again", True, [0, 0, 0])
             self.screen.blit(self.end_screen, (Settings.window_width//2 - self.end_screen.get_rect().centerx, Settings.window_height//2 - self.end_screen.get_rect().centery))
             self.screen.blit(self.best_screen, (Settings.window_width//2 - self.best_screen.get_rect().centerx, Settings.window_height//2 - self.best_screen.get_rect().centery + 30))
-            self.screen.blit(self.retry_screen, (Settings.window_width//2 - self.retry_screen.get_rect().centerx, Settings.window_height//2 - self.retry_screen.get_rect().centery + 60))
+            #self.screen.blit(self.retry_screen, (Settings.window_width//2 - self.retry_screen.get_rect().centerx, Settings.window_height//2 - self.retry_screen.get_rect().centery + 60))
         pygame.display.flip()
 
 

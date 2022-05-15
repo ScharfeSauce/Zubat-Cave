@@ -9,6 +9,7 @@ class Settings(object):
     window_width = 900
     path_file = os.path.dirname(os.path.abspath(__file__))
     path_image = os.path.join(path_file, "images1")
+    path_data = os.path.join(path_file, "player_data.json")
     zubat_size = (50, 50) 
     title = "Zubat in a Cave"
     max_ostacles = 4
