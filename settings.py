@@ -8,12 +8,17 @@ class Settings(object):
     window_height = 500
     window_width = 900
     path_file = os.path.dirname(os.path.abspath(__file__))
-    path_image = os.path.join(path_file, "images1")
+    path_image = os.path.join(path_file, "images")
     path_data = os.path.join(path_file, "player_data.json")
+    standard_fp = 500
     zubat_size = (50, 50) 
+    symbol_size = (20, 20)
     title = "Zubat in a Cave"
     max_ostacles = 4
     max_power = 3
+    object_speed = -5
+    points_position_x = window_width - 150
+    points_position_y = window_height - 50
     
     @staticmethod
     def imagepath(name):
