@@ -1,7 +1,7 @@
 import pygame
 import os
 from settings import Settings
-def sonic_power(group, active):
+def sonic_power(group, active):    #Funktionsweise des Sonic Powerups
     f = ""
     s = 0
     for i in group:

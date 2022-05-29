@@ -1,7 +1,7 @@
 import json
 from settings import Settings
 
-def save_state(name, score):
+def save_state(name, score):  #erstellen eines neuen Eintrags in der Jsondatei
 
     entry = {"Player Name" : name, "Score" : score}
 
@@ -12,7 +12,7 @@ def save_state(name, score):
         with open(Settings.path_data, 'w') as input:
             json.dump(python_liste, input, indent = 4)
 
-def rank():
+def rank():    #auslesen aller einträge der Jsnodatei
     with open(Settings.path_data, 'r')as best:
         best_list = []
         list = json.load(best)
