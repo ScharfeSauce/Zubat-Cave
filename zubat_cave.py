@@ -20,6 +20,7 @@ from data_save import save_state, rank
 #'mega.png' stammt von https://poke-monde.weebly.com/meacutega-eacutevolution.html (poke-monde.weebly.com)
 #'sonic.png' stammt von https://www.clipartmax.com/max/m2i8i8Z5d3Z5Z5G6/ (www.clipartmax.com)
 #'pokeball.png' stammt von https://warosu.org/vr/thread/550984 (warosu.org)
+#'cave_theme.pgg' stammt von https://www.nayuki.io/page/transcription-of-pokemon-game-boy-music (www.nayuki.io)
 #Ich bedanke mich bei den Contant Creatorn für ihre gute Arbeit
 
 
@@ -311,9 +312,6 @@ class Game(object):
             self.ball_group.add(self.ball)
             self.increase_b += 5
             self.ball_mark += self.increase_b                      #Hinderniss Anforderrung erhöhen, um Schwierigkeit zu steigern
-            print(self.ball_mark)
-            print(self.rocks_dodged)
-            print(self.score)
 
         if self.powerup_1_mark == self.rocks_dodged:
             self.up1 = Event("mega.png")
@@ -352,7 +350,8 @@ class Game(object):
             self.color = [0, 255, 0]
         else:
             self.color = [255, 0, 0]
-        self.point_counter = self.font_counter.render('FP: ' + str(self.fp), True, self.color)
+        self.fp_counter = self.font_counter.render('FP: ' + str(self.fp), True, self.color)
+        self.score_counter = self.font_counter.render('Score: ' + str(self.score), True, self.color)
         self.background.draw(self.screen)
         self.zubat_group.draw(self.screen)
         self.rock_group.draw(self.screen)
@@ -375,7 +374,8 @@ class Game(object):
             self.screen.blit(self.one_screen, (Settings.window_width//2 - self.one_screen.get_rect().centerx, Settings.window_height//2 - self.one_screen.get_rect().centery + 30))
             self.screen.blit(self.two_screen, (Settings.window_width//2 - self.two_screen.get_rect().centerx, Settings.window_height//2 - self.two_screen.get_rect().centery + 60))
             self.screen.blit(self.three_screen, (Settings.window_width//2 - self.three_screen.get_rect().centerx, Settings.window_height//2 - self.three_screen.get_rect().centery + 90))
-        self.screen.blit(self.point_counter, (Settings.points_position_x, Settings.points_position_y))
+        self.screen.blit(self.fp_counter, (Settings.points_position_x, Settings.points_position_y))
+        self.screen.blit(self.score_counter, (Settings.points_position_x, 20))
         pygame.display.flip()
 
 
