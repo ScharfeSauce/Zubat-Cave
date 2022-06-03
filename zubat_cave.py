@@ -171,6 +171,7 @@ class Game(object):
         super().__init__()
         pygame.init()
         pygame.font.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode((Settings.window_width, Settings.window_height))
         pygame.display.set_caption(Settings.title)
         self.clock = pygame.time.Clock()
@@ -209,10 +210,18 @@ class Game(object):
         self.life = LifeBar((self.fp // 5, 20))
         self.life_group = pygame.sprite.Group()
         self.life_group.add(self.life)
+        self.volume = Settings.default_volume
+    
+    def game_music(self):
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load(os.path.join(Settings.path_music, Settings.soundtrack))
+            pygame.mixer.music.play(-1)
+            pygame.mixer.music.set_volume(self.volume)
 
     def run(self):
         while self.running:
             self.clock.tick(60)
+            self.game_music()
             self.watch_for_events()
             self.event()
             self.rock_spawn()

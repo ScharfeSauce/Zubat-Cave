@@ -6,10 +6,11 @@ from random import randint
 
 class Settings(object):
     window_height = 500
-    window_width = 900
+    window_width = 1000
     path_file = os.path.dirname(os.path.abspath(__file__))
     path_image = os.path.join(path_file, "images")
     path_data = os.path.join(path_file, "player_data.json")
+    path_music = os.path.join(path_file, "sounds")
     standard_fp = 500
     zubat_size = (50, 50) 
     symbol_size = (20, 20)
@@ -19,6 +20,8 @@ class Settings(object):
     object_speed = -5
     points_position_x = window_width - 150
     points_position_y = window_height - 50
+    soundtrack = "cave_theme.ogg"
+    default_volume = 1
     
     @staticmethod
     def imagepath(name):
