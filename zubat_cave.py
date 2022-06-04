@@ -7,7 +7,7 @@ from settings import Settings, Background
 from timer import Timer
 from animation import Animation
 from spawn_check import spawn_check   #selbst erstelllte Funktionen, ausgelagert in andere Datei
-from powerups import sonic_power
+from powerups import sonic_power, sonic_extra
 from login import *                   #Tkinter Anwendung
 from data_save import save_state, rank
 
@@ -35,7 +35,8 @@ class Zubat(pygame.sprite.Sprite):    #Spieler
         self.rect.centery = Settings.window_height // 2
         self.speed = 6
         self.fly = Animation([f"zubat{i}.png" for i in range(3, 5)], False, 200)
-        self.up_down = Animation([f"zubat{i}.png" for i in range(0, 8)], False, 50)
+        self.up = Animation([f"zubat{i}.png" for i in range(0, 8)], False, 50)
+        self.down = Animation([f"zubat{i}.png" for i in range(7, 8)], False, 50)
 
     def animate(self, anim):
         self.image = anim.next()
@@ -54,10 +55,10 @@ class Zubat(pygame.sprite.Sprite):    #Spieler
         press = pygame.key.get_pressed()
         if press[pygame.K_UP]:
             self.rect.top -= self.speed
-            self.animate(self.up_down)          #bewegungs Animation
+            self.animate(self.up)          #bewegungs Animation
         if press[pygame.K_DOWN]:
             self.rect.top += self.speed
-            self.animate(self.up_down)
+            self.animate(self.down)
         #Wandkollision
         if self.rect.top <= self.speed:         #verlassen des Bildschirms verhindern 
             self.rect.top += self.speed
@@ -191,13 +192,13 @@ class Game(object):
         self.zubat_group.add(self.zubat)
         self.rock_timer = Timer(5000)
         self.ball_mark = 30
-        self.powerup_1_mark = randint(30, 50)
+        self.powerup_1_mark = randint(40, 60)
         self.powerup_2_mark = randint(30, 50)
         self.increase_b = 20
         self.increase_s = 30
         self.increase_m = 30
         self.up1_timer = Timer(20000)             #Zeitlimit der Powerups, nach aktivierung 
-        self.up2_timer = Timer(20000)
+        self.up2_timer = Timer(30000)
         self.cooldown_timer = Timer(3000)
         self.cooldown = False
         self.mega_up = False
@@ -331,9 +332,15 @@ class Game(object):
         
         if self.sonic_up:
             sonic_power(self.rock_group, self.sonic_up)
+            sonic_extra(self.ball_group, self.sonic_up)
+            sonic_extra(self.powerup_1_group, self.sonic_up)
+            sonic_extra(self.powerup_2_group, self.sonic_up)
             if self.up2_timer.is_next_stop_reached():
                 self.sonic_up = False
                 sonic_power(self.rock_group, self.sonic_up)
+                sonic_extra(self.ball_group, self.sonic_up)
+                sonic_extra(self.powerup_1_group, self.sonic_up)
+                sonic_extra(self.powerup_2_group, self.sonic_up)
     
     def symbol_count(self, count, group, image, offset):      #darstellen der gesammelten Powerups
         if count != len(group):

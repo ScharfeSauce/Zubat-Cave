@@ -29,3 +29,10 @@ def sonic_power(group, active):    #Funktionsweise des Sonic Powerups
         i.rect.centerx = x
 
         i.speed_h = s
+
+def sonic_extra(group, active):
+    for i in group:
+        if active:
+            i.speed_h = -2
+        else:
+            i.speed_h = -5

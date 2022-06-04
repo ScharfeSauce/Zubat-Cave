@@ -21,7 +21,7 @@ class Settings(object):
     points_position_x = window_width - 150
     points_position_y = window_height - 50
     soundtrack = "cave_theme.ogg"
-    default_volume = 1
+    default_volume = 2
     
     @staticmethod
     def imagepath(name):
